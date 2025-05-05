@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: smart-email-sender
+    env: python
+    buildCommand: ""
+    startCommand: "python app.py"
+    envVars:
+      - key: EMAIL_USER
+        value: nehaghure5@gmail.com
+      - key: EMAIL_PASS
+        value: fwje pykw mxqp dmik
