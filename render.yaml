@@ -1,11 +1,17 @@
 services:
   - type: web
-    name: smart-email-sender
+    name: smart-email-backend
     env: python
     buildCommand: ""
-    startCommand: "python app.py"
+    startCommand: "python backend/app.py"
     envVars:
       - key: EMAIL_USER
         value: nehaghure5@gmail.com
       - key: EMAIL_PASS
         value: fwje pykw mxqp dmik
+
+  - type: static
+    name: smart-email-frontend
+    rootDir: frontend
+    buildCommand: ""
+    staticPublishPath: .
