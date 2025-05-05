@@ -14,4 +14,4 @@ services:
     name: smart-email-frontend
     rootDir: frontend
     buildCommand: ""
-    staticPublishPath: frontend
+    publish: frontend
