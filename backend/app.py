@@ -6,7 +6,8 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # Load variables from .env
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -26,14 +27,16 @@ def send_email():
     time.sleep(3)
 
     try:
+        # Create email message
         email = EmailMessage()
-        email['From'] = os.getenv('EMAIL_USER')
+        email['From'] = os.getenv('EMAIL_USER')  # Fetch email user from environment variables
         email['To'] = to
         email['Subject'] = subject
         email.set_content(message)
 
+        # Send email using Gmail SMTP server
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))
+            smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))  # Fetch email password from environment variables
             smtp.send_message(email)
 
         return jsonify({'status': 'sent'})
@@ -41,4 +44,6 @@ def send_email():
         return jsonify({'status': 'fail', 'error': str(e)})
 
 if __name__ == '__main__':
-    app.run()
+    # Bind to correct port and host
+    port = int(os.getenv("PORT", 5000))  # Get the PORT from environment variable or default to 5000
+    app.run(host='0.0.0.0', port=port)  # Run app on all interfaces (important for cloud deployments)
