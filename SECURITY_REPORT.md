@@ -1,9 +1,9 @@
 # 🛡️ AppGenius Security Report
 
 **Repository:** `nirzaraghure/smart-email-sender`
-**Scan Date:** 6/3/2026, 12:44:45 PM
-**Files Scanned:** 2
-**Issues Found:** 12
+**Scan Date:** 6/3/2026, 1:12:06 PM
+**Files Scanned:** 3
+**Issues Found:** 13
 
 ## 📊 Summary
 
@@ -11,41 +11,79 @@
 |----------|-------|
 | 🔴 Critical | 0 |
 | 🟠 High | 4 |
-| 🟡 Medium | 3 |
-| 🔵 Low | 5 |
+| 🟡 Medium | 5 |
+| 🔵 Low | 4 |
 
 ## 🔍 Detailed Findings
 
-### 🟡 1. Insecure direct object reference
+### 🟠 1. Insecure direct object reference
 
 **File:** `backend/app.py`
 **Type:** Information Disclosure
-**Severity:** MEDIUM
+**Severity:** HIGH
 
 **Description:**
-The 'to' field in the 'send_email' function is not validated, allowing an attacker to send emails to any address.
+The 'to' field in the request body is not validated and can be manipulated by an attacker to send emails to arbitrary recipients.
 
 **Suggested Fix:**
-Validate the 'to' field to ensure it matches a valid email address.
+Validate the 'to' field to ensure it is a valid email address.
 
 **Code Example:**
 ```
-email['To'] = to
+data['to']
 ```
 
 ---
 
-### 🟠 2. Insecure deserialization
+### 🟠 2. Insecure direct object reference
 
 **File:** `backend/app.py`
-**Type:** Denial of Service
+**Type:** Information Disclosure
 **Severity:** HIGH
 
 **Description:**
-The 'request.get_json()' function is not validated, allowing an attacker to send malicious data.
+The 'subject' field in the request body is not validated and can be manipulated by an attacker to send emails with arbitrary subjects.
 
 **Suggested Fix:**
-Validate the incoming JSON data before deserializing it.
+Validate the 'subject' field to ensure it is a valid string.
+
+**Code Example:**
+```
+data['subject']
+```
+
+---
+
+### 🟠 3. Insecure direct object reference
+
+**File:** `backend/app.py`
+**Type:** Information Disclosure
+**Severity:** HIGH
+
+**Description:**
+The 'message' field in the request body is not validated and can be manipulated by an attacker to send emails with arbitrary content.
+
+**Suggested Fix:**
+Validate the 'message' field to ensure it is a valid string.
+
+**Code Example:**
+```
+data['message']
+```
+
+---
+
+### 🟠 4. Missing input validation
+
+**File:** `backend/app.py`
+**Type:** Security Vulnerability
+**Severity:** HIGH
+
+**Description:**
+The request body is not validated for missing fields, which can lead to unexpected behavior or errors.
+
+**Suggested Fix:**
+Validate the request body to ensure it contains all required fields.
 
 **Code Example:**
 ```
@@ -54,55 +92,36 @@ data = request.get_json()
 
 ---
 
-### 🟠 3. Insecure use of environment variables
+### 🟡 5. Insecure use of environment variables
 
 **File:** `backend/app.py`
-**Type:** Information Disclosure
-**Severity:** HIGH
-
-**Description:**
-Environment variables are used directly without proper validation, allowing an attacker to access sensitive information.
-
-**Suggested Fix:**
-Use a secure method to store and retrieve sensitive data, such as a secrets manager.
-
-**Code Example:**
-```
-os.getenv('EMAIL_USER')  # Fetch email user from environment variables
-```
-
----
-
-### 🟠 4. Insecure use of password
-
-**File:** `backend/app.py`
-**Type:** Information Disclosure
-**Severity:** HIGH
-
-**Description:**
-The email password is stored in environment variables, allowing an attacker to access it.
-
-**Suggested Fix:**
-Use a secure method to store and retrieve sensitive data, such as a secrets manager.
-
-**Code Example:**
-```
-smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))
-```
-
----
-
-### 🟡 5. Insecure use of time.sleep
-
-**File:** `backend/app.py`
-**Type:** Denial of Service
+**Type:** Security Vulnerability
 **Severity:** MEDIUM
 
 **Description:**
-The use of time.sleep can cause the application to be unresponsive for an extended period.
+The email user and password are stored in environment variables, which can be accessed by unauthorized users.
 
 **Suggested Fix:**
-Use a more efficient method to simulate human typing delay, such as using a queue or a worker thread.
+Use a secure method to store sensitive data, such as a secrets manager.
+
+**Code Example:**
+```
+os.getenv('EMAIL_USER') and os.getenv('EMAIL_PASS')
+```
+
+---
+
+### 🟡 6. Insecure use of time.sleep
+
+**File:** `backend/app.py`
+**Type:** Security Vulnerability
+**Severity:** MEDIUM
+
+**Description:**
+The time.sleep function can be used to inject arbitrary code execution.
+
+**Suggested Fix:**
+Use a more secure method to simulate human typing delay, such as a timer or a scheduled task.
 
 **Code Example:**
 ```
@@ -111,17 +130,17 @@ time.sleep(3)
 
 ---
 
-### 🔵 6. Missing error handling
+### 🔵 7. Missing error handling
 
 **File:** `backend/app.py`
-**Type:** Error Handling
+**Type:** Security Vulnerability
 **Severity:** LOW
 
 **Description:**
-The application does not handle errors properly, making it difficult to diagnose issues.
+The error handling in the send_email function is limited and can be improved.
 
 **Suggested Fix:**
-Implement proper error handling mechanisms, such as logging and exception handling.
+Add more specific error handling to handle unexpected errors.
 
 **Code Example:**
 ```
@@ -130,117 +149,102 @@ except Exception as e:
 
 ---
 
-### 🟠 7. Insecure use of innerHTML
+### 🟡 8. Insecure use of SMTP
 
-**File:** `frontend/script.js`
-**Type:** Cross-Site Scripting
-**Severity:** HIGH
-
-**Description:**
-The use of innerHTML can lead to cross-site scripting vulnerabilities.
-
-**Suggested Fix:**
-Use a safer method to update the status, such as setting the text content or using a templating engine.
-
-**Code Example:**
-```
-document.getElementById("status").innerText = "Error sending email. Please try again.";
-```
-
----
-
-### 🟡 8. Missing input validation
-
-**File:** `frontend/script.js`
-**Type:** Input Validation
+**File:** `backend/app.py`
+**Type:** Security Vulnerability
 **Severity:** MEDIUM
 
 **Description:**
-The application does not validate user input, making it vulnerable to attacks.
+The SMTP server is not properly configured and can be used to inject arbitrary code execution.
 
 **Suggested Fix:**
-Implement input validation mechanisms, such as checking for empty fields or malformed data.
+Use a secure method to send emails, such as a third-party email service.
 
 **Code Example:**
 ```
-const to = document.getElementById("to").value;
+with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
 ```
 
 ---
 
-### 🔵 9. Missing error handling
+### 🟡 9. Insecure use of fetch
 
 **File:** `frontend/script.js`
-**Type:** Error Handling
+**Type:** Security Vulnerability
+**Severity:** MEDIUM
+
+**Description:**
+The fetch API is used to send a POST request without proper error handling.
+
+**Suggested Fix:**
+Add proper error handling to handle unexpected errors.
+
+**Code Example:**
+```
+const response = await fetch('https://smart-email-backend-qtel.onrender.com/send', {
+```
+
+---
+
+### 🟡 10. Insecure use of JSON.stringify
+
+**File:** `frontend/script.js`
+**Type:** Security Vulnerability
+**Severity:** MEDIUM
+
+**Description:**
+The JSON.stringify function is used to serialize data without proper validation.
+
+**Suggested Fix:**
+Validate the data before serializing it.
+
+**Code Example:**
+```
+JSON.stringify({ to, subject, message })
+```
+
+---
+
+### 🔵 11. Missing test coverage
+
+**File:** `backend/app.test.py`
+**Type:** Code Quality Issue
 **Severity:** LOW
 
 **Description:**
-The application does not handle errors properly, making it difficult to diagnose issues.
+The test coverage is limited and can be improved.
 
 **Suggested Fix:**
-Implement proper error handling mechanisms, such as logging and exception handling.
-
-**Code Example:**
-```
-catch (error) {
-```
+Add more tests to cover unexpected scenarios.
 
 ---
 
-### 🔵 10. Missing CORS handling
-
-**File:** `frontend/script.js`
-**Type:** Cross-Origin Resource Sharing
-**Severity:** LOW
-
-**Description:**
-The application does not handle CORS requests properly, making it vulnerable to cross-origin attacks.
-
-**Suggested Fix:**
-Implement CORS handling mechanisms, such as setting the 'Access-Control-Allow-Origin' header.
-
-**Code Example:**
-```
-fetch("https://smart-email-backend-qtel.onrender.com/send", {
-```
-
----
-
-### 🔵 11. Missing logging
+### 🔵 12. Missing documentation
 
 **File:** `backend/app.py`
-**Type:** Logging
+**Type:** Code Quality Issue
 **Severity:** LOW
 
 **Description:**
-The application does not log important events, making it difficult to diagnose issues.
+The code is missing documentation and can be improved.
 
 **Suggested Fix:**
-Implement logging mechanisms, such as using a logging framework.
-
-**Code Example:**
-```
-return jsonify({'status': 'fail', 'error': str(e)})
-```
+Add documentation to explain the code and its functionality.
 
 ---
 
-### 🔵 12. Missing security headers
+### 🔵 13. Inconsistent coding style
 
-**File:** `frontend/script.js`
-**Type:** Security Headers
+**File:** `backend/app.py`
+**Type:** Code Quality Issue
 **Severity:** LOW
 
 **Description:**
-The application does not set important security headers, making it vulnerable to attacks.
+The code uses inconsistent coding styles, which can make it harder to read and maintain.
 
 **Suggested Fix:**
-Implement security headers mechanisms, such as setting the 'Content-Security-Policy' header.
-
-**Code Example:**
-```
-fetch("https://smart-email-backend-qtel.onrender.com/send", {
-```
+Use a consistent coding style throughout the codebase.
 
 ---
 
