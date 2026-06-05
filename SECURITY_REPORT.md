@@ -1,165 +1,71 @@
 # 🛡️ AppGenius Security Report
 
 **Repository:** `nirzaraghure/smart-email-sender`
-**Scan Date:** 6/3/2026, 1:12:06 PM
+**Scan Date:** 6/5/2026, 1:48:15 PM
 **Files Scanned:** 3
-**Issues Found:** 13
+**Issues Found:** 9
 
 ## 📊 Summary
 
 | Severity | Count |
 |----------|-------|
 | 🔴 Critical | 0 |
-| 🟠 High | 4 |
-| 🟡 Medium | 5 |
-| 🔵 Low | 4 |
+| 🟠 High | 2 |
+| 🟡 Medium | 2 |
+| 🔵 Low | 5 |
 
 ## 🔍 Detailed Findings
 
 ### 🟠 1. Insecure direct object reference
 
-**File:** `backend/app.py`
-**Type:** Information Disclosure
+**File:** `app.py`
+**Type:** Information Exposure Through Log Files
 **Severity:** HIGH
 
 **Description:**
-The 'to' field in the request body is not validated and can be manipulated by an attacker to send emails to arbitrary recipients.
+The application uses environment variables for sensitive data such as email user and password. These variables should be stored securely, not in plain text.
 
 **Suggested Fix:**
-Validate the 'to' field to ensure it is a valid email address.
+Use a secure method to store sensitive data, such as environment variables with encrypted values or a secrets management service.
 
 **Code Example:**
 ```
-data['to']
+email['From'] = os.getenv('EMAIL_USER')  # Fetch email user from environment variables
+smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))  # Fetch email password from environment variables
 ```
 
 ---
 
-### 🟠 2. Insecure direct object reference
+### 🟠 2. Insecure password storage
 
-**File:** `backend/app.py`
-**Type:** Information Disclosure
+**File:** `app.py`
+**Type:** Information Exposure Through Log Files
 **Severity:** HIGH
 
 **Description:**
-The 'subject' field in the request body is not validated and can be manipulated by an attacker to send emails with arbitrary subjects.
+The application stores email passwords in plain text using environment variables.
 
 **Suggested Fix:**
-Validate the 'subject' field to ensure it is a valid string.
+Use a secure method to store sensitive data, such as environment variables with encrypted values or a secrets management service.
 
 **Code Example:**
 ```
-data['subject']
+smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))  # Fetch email password from environment variables
 ```
 
 ---
 
-### 🟠 3. Insecure direct object reference
+### 🟡 3. Security vulnerability in smtplib
 
-**File:** `backend/app.py`
-**Type:** Information Disclosure
-**Severity:** HIGH
-
-**Description:**
-The 'message' field in the request body is not validated and can be manipulated by an attacker to send emails with arbitrary content.
-
-**Suggested Fix:**
-Validate the 'message' field to ensure it is a valid string.
-
-**Code Example:**
-```
-data['message']
-```
-
----
-
-### 🟠 4. Missing input validation
-
-**File:** `backend/app.py`
-**Type:** Security Vulnerability
-**Severity:** HIGH
-
-**Description:**
-The request body is not validated for missing fields, which can lead to unexpected behavior or errors.
-
-**Suggested Fix:**
-Validate the request body to ensure it contains all required fields.
-
-**Code Example:**
-```
-data = request.get_json()
-```
-
----
-
-### 🟡 5. Insecure use of environment variables
-
-**File:** `backend/app.py`
-**Type:** Security Vulnerability
+**File:** `app.py`
+**Type:** Denial of Service (DoS)
 **Severity:** MEDIUM
 
 **Description:**
-The email user and password are stored in environment variables, which can be accessed by unauthorized users.
+The application uses smtplib's SMTP_SSL which can be vulnerable to DoS attacks if the SMTP server is not properly configured.
 
 **Suggested Fix:**
-Use a secure method to store sensitive data, such as a secrets manager.
-
-**Code Example:**
-```
-os.getenv('EMAIL_USER') and os.getenv('EMAIL_PASS')
-```
-
----
-
-### 🟡 6. Insecure use of time.sleep
-
-**File:** `backend/app.py`
-**Type:** Security Vulnerability
-**Severity:** MEDIUM
-
-**Description:**
-The time.sleep function can be used to inject arbitrary code execution.
-
-**Suggested Fix:**
-Use a more secure method to simulate human typing delay, such as a timer or a scheduled task.
-
-**Code Example:**
-```
-time.sleep(3)
-```
-
----
-
-### 🔵 7. Missing error handling
-
-**File:** `backend/app.py`
-**Type:** Security Vulnerability
-**Severity:** LOW
-
-**Description:**
-The error handling in the send_email function is limited and can be improved.
-
-**Suggested Fix:**
-Add more specific error handling to handle unexpected errors.
-
-**Code Example:**
-```
-except Exception as e:
-```
-
----
-
-### 🟡 8. Insecure use of SMTP
-
-**File:** `backend/app.py`
-**Type:** Security Vulnerability
-**Severity:** MEDIUM
-
-**Description:**
-The SMTP server is not properly configured and can be used to inject arbitrary code execution.
-
-**Suggested Fix:**
-Use a secure method to send emails, such as a third-party email service.
+Use a secure method to connect to the SMTP server, such as using a library that provides a secure connection.
 
 **Code Example:**
 ```
@@ -168,83 +74,119 @@ with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
 
 ---
 
-### 🟡 9. Insecure use of fetch
+### 🔵 4. Potential SQL injection vulnerability
 
-**File:** `frontend/script.js`
-**Type:** Security Vulnerability
-**Severity:** MEDIUM
+**File:** `app.py`
+**Type:** SQL Injection
+**Severity:** LOW
 
 **Description:**
-The fetch API is used to send a POST request without proper error handling.
+The application uses user-provided input to construct the email's To and Subject fields. This could potentially be exploited for SQL injection attacks if the email's content is not properly sanitized.
 
 **Suggested Fix:**
-Add proper error handling to handle unexpected errors.
+Use input validation and sanitization to ensure user-provided input is safe.
 
 **Code Example:**
 ```
-const response = await fetch('https://smart-email-backend-qtel.onrender.com/send', {
+email['To'] = to
+email['Subject'] = subject
 ```
 
 ---
 
-### 🟡 10. Insecure use of JSON.stringify
+### 🔵 5. Potential cross-site scripting (XSS) vulnerability
 
-**File:** `frontend/script.js`
-**Type:** Security Vulnerability
-**Severity:** MEDIUM
+**File:** `app.py`
+**Type:** Cross-Site Scripting (XSS)
+**Severity:** LOW
 
 **Description:**
-The JSON.stringify function is used to serialize data without proper validation.
+The application uses user-provided input to construct the email's message field. This could potentially be exploited for XSS attacks if the email's content is not properly sanitized.
 
 **Suggested Fix:**
-Validate the data before serializing it.
+Use input validation and sanitization to ensure user-provided input is safe.
 
 **Code Example:**
 ```
-JSON.stringify({ to, subject, message })
+email.set_content(message)
 ```
 
 ---
 
-### 🔵 11. Missing test coverage
+### 🔵 6. Potential directory traversal vulnerability
 
-**File:** `backend/app.test.py`
-**Type:** Code Quality Issue
+**File:** `app.py`
+**Type:** Directory Traversal
 **Severity:** LOW
 
 **Description:**
-The test coverage is limited and can be improved.
+The application uses user-provided input to construct the email's To field. This could potentially be exploited for directory traversal attacks if the email's content is not properly sanitized.
 
 **Suggested Fix:**
-Add more tests to cover unexpected scenarios.
+Use input validation and sanitization to ensure user-provided input is safe.
+
+**Code Example:**
+```
+email['To'] = to
+```
 
 ---
 
-### 🔵 12. Missing documentation
+### 🔵 7. Error handling is not robust enough
 
-**File:** `backend/app.py`
-**Type:** Code Quality Issue
+**File:** `app.py`
+**Type:** Error Handling
 **Severity:** LOW
 
 **Description:**
-The code is missing documentation and can be improved.
+The application catches a broad exception and returns a generic error message. This could potentially hide more serious issues.
 
 **Suggested Fix:**
-Add documentation to explain the code and its functionality.
+Catch specific exceptions and provide more informative error messages.
+
+**Code Example:**
+```
+except Exception as e:
+    return jsonify({'status': 'fail', 'error': str(e)})
+```
 
 ---
 
-### 🔵 13. Inconsistent coding style
+### 🟡 8. Potential denial of service (DoS) attack
 
-**File:** `backend/app.py`
-**Type:** Code Quality Issue
+**File:** `app.py`
+**Type:** Denial of Service (DoS)
+**Severity:** MEDIUM
+
+**Description:**
+The application uses a human typing delay which could potentially be exploited for DoS attacks if the delay is too long.
+
+**Suggested Fix:**
+Use a secure method to implement the human typing delay, such as using a library that provides a secure delay.
+
+**Code Example:**
+```
+time.sleep(3)
+```
+
+---
+
+### 🔵 9. Potential cross-site scripting (XSS) vulnerability
+
+**File:** `script.js`
+**Type:** Cross-Site Scripting (XSS)
 **Severity:** LOW
 
 **Description:**
-The code uses inconsistent coding styles, which can make it harder to read and maintain.
+The application uses user-provided input to construct the status field. This could potentially be exploited for XSS attacks if the status text is not properly sanitized.
 
 **Suggested Fix:**
-Use a consistent coding style throughout the codebase.
+Use input validation and sanitization to ensure user-provided input is safe.
+
+**Code Example:**
+```
+document.getElementById("status").innerText = "Sending like a human...";
+```
 
 ---
 
