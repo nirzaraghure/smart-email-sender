@@ -1,71 +1,32 @@
 # 🛡️ AppGenius Security Report
 
 **Repository:** `nirzaraghure/smart-email-sender`
-**Scan Date:** 6/9/2026, 11:30:19 AM
+**Scan Date:** 6/29/2026, 2:32:13 PM
 **Files Scanned:** 3
-**Issues Found:** 11
+**Issues Found:** 8
 
 ## 📊 Summary
 
 | Severity | Count |
 |----------|-------|
-| 🔴 Critical | 1 |
+| 🔴 Critical | 0 |
 | 🟠 High | 5 |
-| 🟡 Medium | 4 |
+| 🟡 Medium | 2 |
 | 🔵 Low | 1 |
 
 ## 🔍 Detailed Findings
 
-### 🟡 1. Hardcoded port number
+### 🟠 1. Exposure of sensitive data in environment variables
 
 **File:** `backend/app.py`
-**Type:** Security
-**Severity:** MEDIUM
-
-**Description:**
-The port number is hardcoded to 5000. This can be changed by an attacker.
-
-**Suggested Fix:**
-Use an environment variable or a configuration file to store the port number.
-
-**Code Example:**
-```
-port = int(os.getenv('PORT', 5000))
-```
-
----
-
-### 🟠 2. Sensitive data in environment variables
-
-**File:** `backend/app.py`
-**Type:** Security
+**Type:** Information Disclosure
 **Severity:** HIGH
 
 **Description:**
-The email user and password are stored in environment variables. This is a security risk if the environment variables are not properly secured.
+Environment variables containing sensitive data like email passwords are exposed in the code.
 
 **Suggested Fix:**
-Use a secure method to store sensitive data, such as a secrets manager or a secure file.
-
-**Code Example:**
-```
-email['From'] = os.getenv('EMAIL_USER')  # Fetch email user from environment variables
-smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))
-```
-
----
-
-### 🔴 3. Unsecured email password storage
-
-**File:** `backend/app.py`
-**Type:** Security
-**Severity:** CRITICAL
-
-**Description:**
-The email password is stored in plain text in the environment variables. This is a major security risk.
-
-**Suggested Fix:**
-Use a secure method to store sensitive data, such as a secrets manager or a secure file.
+Use secure methods to store sensitive data, such as environment variable managers or secure storage solutions.
 
 **Code Example:**
 ```
@@ -74,93 +35,93 @@ smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))
 
 ---
 
-### 🟠 4. Potential SQL injection vulnerability
+### 🟠 2. Insecure direct object reference
 
 **File:** `backend/app.py`
-**Type:** Security
+**Type:** Vulnerability
 **Severity:** HIGH
 
 **Description:**
-The email recipient is not validated or sanitized. This can lead to potential SQL injection vulnerabilities.
+Email user and password are stored in environment variables, making them accessible to unauthorized users.
 
 **Suggested Fix:**
-Validate and sanitize the email recipient using a library such as sqlparse.
+Use secure methods to store sensitive data, such as environment variable managers or secure storage solutions.
 
 **Code Example:**
 ```
-to = data['to']
+os.getenv('EMAIL_USER') and os.getenv('EMAIL_PASS')
 ```
 
 ---
 
-### 🟡 5. Potential cross-site scripting (XSS) vulnerability
+### 🟠 3. Insecure email sending
 
 **File:** `backend/app.py`
-**Type:** Security
+**Type:** Vulnerability
+**Severity:** HIGH
+
+**Description:**
+Emails are sent without encryption, making them vulnerable to interception and eavesdropping.
+
+**Suggested Fix:**
+Use encrypted email protocols or services that provide encryption.
+
+**Code Example:**
+```
+smtplib.SMTP_SSL('smtp.gmail.com', 465)
+```
+
+---
+
+### 🟡 4. Potential Denial of Service (DoS)
+
+**File:** `backend/app.py`
+**Type:** Vulnerability
 **Severity:** MEDIUM
 
 **Description:**
-The email message is not validated or sanitized. This can lead to potential cross-site scripting (XSS) vulnerabilities.
+The application can be vulnerable to a DoS attack if an attacker sends a large number of requests.
 
 **Suggested Fix:**
-Validate and sanitize the email message using a library such as bleach.
+Implement rate limiting and monitoring to prevent excessive requests.
 
 **Code Example:**
 ```
-email.set_content(message)
+app.run(host='0.0.0.0', port=port)
 ```
 
 ---
 
-### 🟠 6. Potential Denial of Service (DoS) attack
+### 🟡 5. Error handling is not robust
 
 **File:** `backend/app.py`
-**Type:** Security
-**Severity:** HIGH
+**Type:** Code Quality
+**Severity:** MEDIUM
 
 **Description:**
-The email sender can cause a Denial of Service (DoS) attack by flooding the SMTP server with emails.
+The application catches all exceptions and returns a generic error message, which can make it difficult to diagnose issues.
 
 **Suggested Fix:**
-Implement rate limiting and IP blocking to prevent DoS attacks.
+Catch specific exceptions and return meaningful error messages.
 
 **Code Example:**
 ```
-smtp.send_message(email)
+except Exception as e: return jsonify({'status': 'fail', 'error': str(e)})
 ```
 
 ---
 
-### 🔵 7. Mocking is not robust
+### 🔵 6. Test coverage is incomplete
 
-**File:** `backend/test_app.py`
-**Type:** Code quality
+**File:** `backend/app.test.py`
+**Type:** Code Quality
 **Severity:** LOW
 
 **Description:**
-The mocking is not robust and may not cover all edge cases.
+Not all possible scenarios are tested.
 
 **Suggested Fix:**
-Use a more robust mocking library such as pytest-mock.
-
-**Code Example:**
-```
-@patch('backend.app.smtplib')
-```
-
----
-
-### 🟡 8. Test cases are not comprehensive
-
-**File:** `backend/test_app.py`
-**Type:** Code quality
-**Severity:** MEDIUM
-
-**Description:**
-The test cases are not comprehensive and may not cover all edge cases.
-
-**Suggested Fix:**
-Write more comprehensive test cases using a library such as pytest.
+Write additional tests to cover more scenarios.
 
 **Code Example:**
 ```
@@ -169,59 +130,40 @@ class TestHomeRoute(unittest.TestCase):
 
 ---
 
-### 🟠 9. Cross-site request forgery (CSRF) vulnerability
+### 🟠 7. Potential Cross-Site Scripting (XSS) vulnerability
 
 **File:** `frontend/script.js`
-**Type:** Security
+**Type:** Vulnerability
 **Severity:** HIGH
 
 **Description:**
-The frontend application is vulnerable to cross-site request forgery (CSRF) attacks.
+The application does not validate user input, making it vulnerable to XSS attacks.
 
 **Suggested Fix:**
-Implement CSRF protection using a library such as CSRF.js.
+Validate user input and sanitize user data.
+
+**Code Example:**
+```
+const to = document.getElementById("to").value;
+```
+
+---
+
+### 🟠 8. Potential Cross-Site Request Forgery (CSRF) vulnerability
+
+**File:** `frontend/script.js`
+**Type:** Vulnerability
+**Severity:** HIGH
+
+**Description:**
+The application does not implement CSRF protection, making it vulnerable to CSRF attacks.
+
+**Suggested Fix:**
+Implement CSRF protection, such as using a CSRF token.
 
 **Code Example:**
 ```
 document.getElementById("emailForm").addEventListener("submit", async (e) => {
-```
-
----
-
-### 🟡 10. Potential cross-site scripting (XSS) vulnerability
-
-**File:** `frontend/script.js`
-**Type:** Security
-**Severity:** MEDIUM
-
-**Description:**
-The status message is not validated or sanitized. This can lead to potential cross-site scripting (XSS) vulnerabilities.
-
-**Suggested Fix:**
-Validate and sanitize the status message using a library such as bleach.
-
-**Code Example:**
-```
-document.getElementById("status").innerText = "Sending like a human...";
-```
-
----
-
-### 🟠 11. Potential Denial of Service (DoS) attack
-
-**File:** `frontend/script.js`
-**Type:** Security
-**Severity:** HIGH
-
-**Description:**
-The email sender can cause a Denial of Service (DoS) attack by flooding the backend server with requests.
-
-**Suggested Fix:**
-Implement rate limiting and IP blocking to prevent DoS attacks.
-
-**Code Example:**
-```
-const response = await fetch("https://smart-email-backend-qtel.onrender.com/send", {
 ```
 
 ---
